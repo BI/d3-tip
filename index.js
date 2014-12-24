@@ -30,7 +30,7 @@
         svg       = null,
         point     = null,
         target    = null,
-        positionAnchor = 'shape';
+        positionAnchor = d3_tip_positionAnchor;
 
     function tip(vis) {
       svg = getSVGNode(vis)
@@ -59,16 +59,15 @@
 
       while(i--) nodel.classed(directions[i], false)
       coords = direction_callbacks.get(dir).apply(this)
-      if(positionAnchor === 'shape') {
+      if(positionAnchor() === 'shape') {
         nodel.classed(dir, true).style({
           top: (coords.top +  poffset[0]) + scrollTop + 'px',
           left: (coords.left + poffset[1]) + scrollLeft + 'px'
         });
       }
-      else if(positionAnchor === 'mouse') {
-
+      else if(positionAnchor() === 'mouse') {
         nodel.classed(dir, true);
-        updatePosition();
+        tip.updatePosition(poffset);
       }
       
       return tip
@@ -86,14 +85,18 @@
     //Public - update position of tooltip based on mouse
     //
     // Returns a tip
-    tip.updatePosition = function() {
+    tip.updatePosition = function(v) {
       var nodel = d3.select(node);
       var mouseX = d3.mouse(d3.select("html").node())[0];
       var mouseY = d3.mouse(d3.select("html").node())[1];
 
+      if(v.length) {
+        mouseX += v[0];
+        mouseY += v[1];
+      }
       nodel.style({
-        top: (mouseY + 10) + 'px',
-        left: (mouseX + 15) + 'px'
+        top: (mouseY + 20) + 'px',
+        left: (mouseX + 10) + 'px'
       });
       return tip;
     };
@@ -185,6 +188,7 @@
     function d3_tip_direction() { return 'n' }
     function d3_tip_offset() { return [0, 0] }
     function d3_tip_html() { return ' ' }
+    function d3_tip_positionAnchor() { return 'shape';}
 
     var direction_callbacks = d3.map({
       n:  direction_n,
