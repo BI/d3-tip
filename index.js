@@ -29,7 +29,8 @@
         node      = initNode(),
         svg       = null,
         point     = null,
-        target    = null
+        target    = null,
+        positionAnchor = d3_tip_positionAnchor;
 
     function tip(vis) {
       svg = getSVGNode(vis)
@@ -58,11 +59,17 @@
 
       while(i--) nodel.classed(directions[i], false)
       coords = direction_callbacks.get(dir).apply(this)
-      nodel.classed(dir, true).style({
-        top: (coords.top +  poffset[0]) + scrollTop + 'px',
-        left: (coords.left + poffset[1]) + scrollLeft + 'px'
-      })
-
+      if(positionAnchor() === 'shape') {
+        nodel.classed(dir, true).style({
+          top: (coords.top +  poffset[0]) + scrollTop + 'px',
+          left: (coords.left + poffset[1]) + scrollLeft + 'px'
+        });
+      }
+      else if(positionAnchor() === 'mouse') {
+        nodel.classed(dir, true);
+        tip.updatePosition(poffset);
+      }
+      
       return tip
     }
 
@@ -74,6 +81,25 @@
       nodel.style({ opacity: 0, 'pointer-events': 'none' })
       return tip
     }
+
+    //Public - update position of tooltip based on mouse
+    //
+    // Returns a tip
+    tip.updatePosition = function(v) {
+      var nodel = d3.select(node);
+      var mouseX = d3.mouse(d3.select("html").node())[0];
+      var mouseY = d3.mouse(d3.select("html").node())[1];
+
+      if(v.length) {
+        mouseX += v[0];
+        mouseY += v[1];
+      }
+      nodel.style({
+        top: (mouseY + 20) + 'px',
+        left: (mouseX + 10) + 'px'
+      });
+      return tip;
+    };
 
     // Public: Proxy attr calls to the d3 tip container.  Sets or gets attribute value.
     //
@@ -122,6 +148,19 @@
       return tip
     }
 
+    // Public: Set or get the position anchor of the tool tip.
+    //
+    // v - either 'ordinal' - the default position that uses ordinal positioning
+    // or 'mouse' - to position the tool tip wherever the mouse goes on the selected node
+    //
+    // Returns tip or position
+    tip.positionAnchor = function(v) {
+      if (!arguments.length) return positionAnchor;
+      positionAnchor = v == null ? v : d3.functor(v);
+
+      return tip;
+    };
+
     // Public: Sets or gets the offset of the tip
     //
     // v - Array of [x, y] offset
@@ -149,6 +188,7 @@
     function d3_tip_direction() { return 'n' }
     function d3_tip_offset() { return [0, 0] }
     function d3_tip_html() { return ' ' }
+    function d3_tip_positionAnchor() { return 'shape';}
 
     var direction_callbacks = d3.map({
       n:  direction_n,
