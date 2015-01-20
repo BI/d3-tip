@@ -59,10 +59,22 @@
 
       while(i--) nodel.classed(directions[i], false)
       coords = direction_callbacks.get(dir).apply(this)
+      var rightEdge =  coords.left + poffset[1] + scrollLeft + nodel.property('offsetWidth');
+      var bottomEdge = coords.top +  poffset[0] + scrollTop + nodel.property('offsetHeight');
+      var overFlowRight = tipOverFlowRight(rightEdge);
+      var overFlowBottom = tipOverFlowBottom(bottomEdge);
+      var leftEdge = coords.left + poffset[1] + scrollLeft;
+      var overFlowLeft = tipOverFlowLeft(leftEdge);
+      var topEdge = coords.top + poffset[0] + scrollTop;
+
+      if(overFlowRight) leftEdge -= overFlowRight;
+      if(overFlowLeft) leftEdge += overFlowLeft;
+      if(overFlowBottom) topEdge -= overFlowBottom;
+
       if(positionAnchor() === 'shape') {
         nodel.classed(dir, true).style({
-          top: (coords.top +  poffset[0]) + scrollTop + 'px',
-          left: (coords.left + poffset[1]) + scrollLeft + 'px'
+          top: topEdge + 'px',
+          left: leftEdge + 'px'
         });
       }
       else if(positionAnchor() === 'mouse') {
@@ -87,20 +99,53 @@
     // Returns a tip
     tip.updatePosition = function(v) {
       var nodel = d3.select(node);
-      var mouseX = d3.mouse(d3.select("html").node())[0];
-      var mouseY = d3.mouse(d3.select("html").node())[1];
+      var mouseX = d3.mouse(d3.select("html").node())[0] + 10;
+      var mouseY = d3.mouse(d3.select("html").node())[1] + 20;
+      var rightEdge = mouseX + nodel.property('offsetWidth');
+      var bottomEdge = mouseY + nodel.property('offsetHeight');
+      var overFlowRight = tipOverFlowRight(rightEdge);
+      var overFlowLeft = tipOverFlowLeft(mouseX);
+      var overFlowBottom = tipOverFlowBottom(bottomEdge);
 
       if(v.length) {
         mouseX += v[0];
         mouseY += v[1];
       }
+      if(overFlowRight) mouseX -= overFlowRight;
+      if(overFlowLeft) mouseX += overFlowLeft;
+      if(overFlowBottom) mouseY -= overFlowBottom;
+
       nodel.style({
-        top: (mouseY + 20) + 'px',
-        left: (mouseX + 10) + 'px'
+        top: mouseY + 'px',
+        left: mouseX + 'px'
       });
       return tip;
     };
 
+    function tipOverFlowRight(rightEdge) {
+      var windowWidth = window.outerWidth;
+      if(rightEdge > windowWidth)
+        return rightEdge - windowWidth;
+      else
+        return false;
+    }
+
+    function tipOverFlowLeft(leftEdge) {
+      var windowWidth = window.outerWidth;
+      if(leftEdge < 0)
+        return -(leftEdge);
+      else
+        return false;
+    }
+
+    function tipOverFlowBottom(bottomEdge) {
+      var scrollTop = document.documentElement.scrollTop || document.body.scrollTop;
+      var windowHeight = window.innerHeight + scrollTop;
+      if(bottomEdge > windowHeight)
+        return bottomEdge - windowHeight;
+      else
+        return false;
+    }
     // Public: Proxy attr calls to the d3 tip container.  Sets or gets attribute value.
     //
     // n - name of the attribute
