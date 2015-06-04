@@ -55,7 +55,7 @@
           scrollLeft = document.documentElement.scrollLeft || document.body.scrollLeft
 
       nodel.html(content)
-        .style({ opacity: 1, 'pointer-events': 'all' })
+        .style({ opacity: 1, 'pointer-events': 'all', 'z-index': 100 })
 
       while(i--) nodel.classed(directions[i], false)
       coords = direction_callbacks.get(dir).apply(this)
@@ -90,7 +90,7 @@
     // Returns a tip
     tip.hide = function() {
       var nodel = d3.select(node)
-      nodel.style({ opacity: 0, 'pointer-events': 'none' })
+      nodel.style({ opacity: 0, 'pointer-events': 'none', 'z-index': -1 })
       return tip
     }
 
